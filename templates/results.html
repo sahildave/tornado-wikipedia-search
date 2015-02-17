@@ -5,9 +5,10 @@
     <title>Search Results</title>
 </head>
 <body>
+{% autoescape None %}
 <ul>
     {% for page in searchResult %}
-    <li>{{ page["title"] }}, Snippet - {% raw page["snippet"] %}</li>
+    <li>{{ modules.ResultItem(page) }}</li>
     {% end %}
 </ul>
 </body>
