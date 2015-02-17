@@ -5,6 +5,8 @@ import tornado.web
 import tornado.httpclient
 import tornado.gen
 
+import os.path
+
 import urllib
 import json
 import datetime
@@ -13,10 +15,17 @@ import time
 from tornado.options import define, options
 define("port", default=8888, type=int, help="runs on port")
 
+
 class IndexHandler(tornado.web.RequestHandler):
+    def get(self):
+        print "in indexHandler"
+        self.render('index.html')
+
+class SearchHandler(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     @tornado.gen.engine
     def get(self):
+        print "in searchHandler"
         query = self.get_argument('q')
         client = tornado.httpclient.AsyncHTTPClient()
         response = yield tornado.gen.Task(client.fetch, "http://en.wikipedia.org/w/api.php?" +
@@ -45,12 +54,18 @@ class IndexHandler(tornado.web.RequestHandler):
             print timestamp
             # print timeTornado
 
-        self.write(body)
-        self.finish()
+        self.render(
+            "results.html",
+            searchResult=searchJSON
+        )
 
 if __name__ == "__main__":
     tornado.options.parse_command_line()
-    app = tornado.web.Application(handlers=[(r"/", IndexHandler)])
+    app = tornado.web.Application(
+        handlers=[(r"/", IndexHandler), (r"/result", SearchHandler)],
+        template_path=os.path.join(os.path.dirname(__file__), "templates"),
+        debug=True
+    )
     http_server = tornado.httpserver.HTTPServer(app)
     http_server.listen(options.port)
     tornado.ioloop.IOLoop.instance().start()
